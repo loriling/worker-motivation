@@ -15,8 +15,11 @@
   const endInput = document.querySelector("#end-time");
   const dayInputs = [...document.querySelectorAll('input[name="workday"]')];
   const progressBar = document.querySelector('[role="progressbar"]');
+  const installButton = document.querySelector("#install-app");
+  const installStatus = document.querySelector("#install-status");
   let settings = loadSettings();
   let saveMessageTimer;
+  let deferredInstallPrompt;
 
   function loadSettings() {
     try {
@@ -228,6 +231,58 @@
     saveMessageTimer = setTimeout(() => { status.textContent = ""; }, 4000);
   });
 
+  function setupInstallPrompt() {
+    const supportsWebInstall = typeof Navigator.prototype.install === "function";
+
+    if (supportsWebInstall) installButton.hidden = false;
+
+    window.addEventListener("beforeinstallprompt", event => {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+      installButton.hidden = false;
+    });
+
+    window.addEventListener("appinstalled", () => {
+      deferredInstallPrompt = undefined;
+      installButton.hidden = true;
+      installStatus.textContent = "薪动已安装。";
+    });
+
+    installButton.addEventListener("click", async () => {
+      if (installButton.getAttribute("aria-disabled") === "true") return;
+      installButton.setAttribute("aria-disabled", "true");
+
+      try {
+        if (supportsWebInstall) {
+          await navigator.install();
+          installStatus.textContent = "薪动已安装或打开。";
+          installButton.hidden = true;
+        } else if (deferredInstallPrompt) {
+          const promptEvent = deferredInstallPrompt;
+          deferredInstallPrompt = undefined;
+          await promptEvent.prompt();
+          const { outcome } = await promptEvent.userChoice;
+          installStatus.textContent = outcome === "accepted" ? "薪动已安装。" : "已取消安装。";
+          installButton.hidden = true;
+        }
+      } catch (error) {
+        installStatus.textContent = error.name === "AbortError" ? "已取消安装。" : "暂时无法安装应用。";
+        if (error.name !== "AbortError") console.error(error);
+      } finally {
+        installButton.removeAttribute("aria-disabled");
+      }
+    });
+  }
+
+  function registerServiceWorker() {
+    if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./service-worker.js").catch(error => {
+        console.error("Service Worker registration failed:", error);
+      });
+    });
+  }
+
   [salaryInput, startInput, endInput, ...dayInputs].forEach(input => {
     input.addEventListener("input", () => {
       input.removeAttribute("aria-invalid");
@@ -236,6 +291,8 @@
   });
 
   populateForm();
+  setupInstallPrompt();
+  registerServiceWorker();
   updateDashboard();
   window.setInterval(updateDashboard, 100);
 })();
