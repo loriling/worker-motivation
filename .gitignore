@@ -1,0 +1,10 @@
+# Local visual verification artifacts
+desktop.png
+mobile.png
+mobile-fixed.png
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

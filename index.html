@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="根据月薪和工作时间，实时查看今天赚了多少钱。">
+  <title>薪动 - 实时收入计时器</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+
+  <header class="topbar">
+    <a class="brand" href="#main" aria-label="薪动首页">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </span>
+      <span>薪动</span>
+    </a>
+    <div class="topbar-meta">
+      <span class="privacy-note">
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
+        数据仅保存在本机
+      </span>
+      <time id="current-time" class="current-time"></time>
+    </div>
+  </header>
+
+  <main id="main" class="page-shell">
+    <section class="earnings-panel" aria-labelledby="earnings-title">
+      <div class="status-row">
+        <span id="work-status" class="status-badge">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span id="status-text">正在读取时间</span>
+        </span>
+        <span id="schedule-label" class="schedule-label">--:-- - --:--</span>
+      </div>
+
+      <div class="earnings-main">
+        <p class="eyebrow" id="earnings-title">今天已经赚到</p>
+        <p class="money" aria-describedby="earnings-description">
+          <span class="currency">¥</span><span id="today-earnings">0.0000</span>
+        </p>
+        <p id="earnings-description" class="earnings-description">每一秒，都在把时间变成收获。</p>
+      </div>
+
+      <div class="progress-area">
+        <div class="progress-labels">
+          <span>今日工作进度</span>
+          <strong id="progress-percent">0%</strong>
+        </div>
+        <div class="progress-track" role="progressbar" aria-label="今日工作进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <span id="progress-fill" class="progress-fill"></span>
+        </div>
+        <div class="progress-times">
+          <span id="start-time-label">开始 --:--</span>
+          <span id="remaining-label">尚未开始</span>
+          <span id="end-time-label">结束 --:--</span>
+        </div>
+      </div>
+
+      <dl class="metrics">
+        <div class="metric">
+          <dt>每小时</dt>
+          <dd id="hourly-rate">¥0.00</dd>
+        </div>
+        <div class="metric">
+          <dt>每分钟</dt>
+          <dd id="minute-rate">¥0.0000</dd>
+        </div>
+        <div class="metric">
+          <dt>每秒</dt>
+          <dd id="second-rate">¥0.000000</dd>
+        </div>
+      </dl>
+    </section>
+
+    <aside class="settings-panel" aria-labelledby="settings-title">
+      <div class="settings-heading">
+        <div>
+          <p class="section-kicker">你的工作参数</p>
+          <h1 id="settings-title">收入设置</h1>
+        </div>
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+      </div>
+
+      <form id="settings-form" action="#" novalidate>
+        <div class="field">
+          <label for="monthly-salary">月薪（税前）</label>
+          <span id="salary-hint" class="field-hint">用于换算你的时薪与实时收入</span>
+          <div class="input-with-prefix">
+            <span aria-hidden="true">¥</span>
+            <input id="monthly-salary" name="monthlySalary" type="number" inputmode="decimal" min="1" max="10000000" step="100" required aria-describedby="salary-hint salary-error">
+          </div>
+          <span id="salary-error" class="field-error" role="alert"></span>
+        </div>
+
+        <fieldset class="field workdays-field">
+          <legend>每周工作日</legend>
+          <span class="field-hint">选择你通常需要上班的日期</span>
+          <div class="day-picker">
+            <label><input type="checkbox" name="workday" value="1"><span>一</span></label>
+            <label><input type="checkbox" name="workday" value="2"><span>二</span></label>
+            <label><input type="checkbox" name="workday" value="3"><span>三</span></label>
+            <label><input type="checkbox" name="workday" value="4"><span>四</span></label>
+            <label><input type="checkbox" name="workday" value="5"><span>五</span></label>
+            <label><input type="checkbox" name="workday" value="6"><span>六</span></label>
+            <label><input type="checkbox" name="workday" value="0"><span>日</span></label>
+          </div>
+          <span id="workdays-error" class="field-error" role="alert"></span>
+        </fieldset>
+
+        <div class="time-fields">
+          <div class="field">
+            <label for="start-time">上班时间</label>
+            <input id="start-time" name="startTime" type="time" required aria-describedby="time-error">
+          </div>
+          <div class="field">
+            <label for="end-time">下班时间</label>
+            <input id="end-time" name="endTime" type="time" required aria-describedby="time-error">
+          </div>
+        </div>
+        <span id="time-error" class="field-error time-error" role="alert"></span>
+
+        <div class="calculation-note">
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+          <span id="calculation-summary">每天 8 小时，每周 5 天</span>
+        </div>
+
+        <button class="primary-button" type="submit">
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+          保存并开始计时
+        </button>
+        <p id="save-status" class="save-status" role="status" aria-live="polite"></p>
+      </form>
+    </aside>
+  </main>
+
+  <footer>
+    <p>认真生活，也别忘了看见自己的每一份收获。</p>
+  </footer>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
